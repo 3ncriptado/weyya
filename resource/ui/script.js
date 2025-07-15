@@ -163,6 +163,10 @@ window.addEventListener('message', (e) => {
     loadDeliveryOrders();
   } else if (e.data === 'close') {
     document.getElementById('app').style.display = 'none';
+  } else if (e.data === 'refreshBusinessOrders') {
+    loadBusinessOrders();
+  } else if (e.data === 'refreshDeliveryOrders') {
+    loadDeliveryOrders();
   }
 });
 
