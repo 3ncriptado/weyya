@@ -1,6 +1,10 @@
 const tabs = document.querySelectorAll('.tab');
 const contents = document.querySelectorAll('.tab-content');
 
+// Detect resource name dynamically to support renamed folders
+const resourceName =
+  typeof GetParentResourceName === 'function' ? GetParentResourceName() : 'way';
+
 tabs.forEach((btn) => {
   btn.addEventListener('click', () => {
     tabs.forEach((b) => b.classList.remove('active'));
@@ -13,7 +17,7 @@ tabs.forEach((btn) => {
 
 // Utility to send data to FiveM
 async function nui(action, data) {
-  const res = await fetch(`https://way/${action}`, {
+  const res = await fetch(`https://${resourceName}/${action}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data || {}),
