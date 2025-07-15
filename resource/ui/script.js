@@ -30,36 +30,6 @@ async function nui(action, data) {
 }
 
 // CLIENT VIEW --------------------------------------------------------------
-const tabs = document.querySelectorAll('.tab');
-const contents = document.querySelectorAll('.tab-content');
-
-// Detect resource name dynamically to support renamed folders
-const resourceName =
-  typeof GetParentResourceName === 'function' ? GetParentResourceName() : 'way';
-
-tabs.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    tabs.forEach((b) => b.classList.remove('active'));
-    btn.classList.add('active');
-    const name = btn.dataset.tab;
-    contents.forEach((c) => c.classList.add('hidden'));
-    document.getElementById(name).classList.remove('hidden');
-  });
-});
-
-// Utility to send data to FiveM
-async function nui(action, data) {
-  const res = await fetch(`https://${resourceName}/${action}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data || {}),
-  });
-  try {
-    return await res.json();
-  } catch (e) {
-    return null;
-  }
-}
 
 let currentBusiness = null;
 let cart = [];
@@ -386,11 +356,6 @@ window.addEventListener('message', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
   loadBusinesses('');
   loadOwnerBusiness();
-  loadBusinessOrders();
-  loadMyOrders();
-  loadDeliveryOrders();
-});
-loadOwnerBusiness();
   loadBusinessOrders();
   loadMyOrders();
   loadDeliveryOrders();
