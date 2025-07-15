@@ -3,6 +3,53 @@ AddEventHandler('way:orderCreated', function(data)
     print('Order created: ' .. data.id)
 end)
 
+-- Incoming order/notification events ---------------------------------------
+RegisterNetEvent('way:newOrder')
+AddEventHandler('way:newOrder', function(data)
+    TriggerEvent('lb-phone:notify', {
+        title = 'Way Delivery',
+        message = 'Nueva orden #' .. data.id,
+        icon = 'fas fa-hamburger',
+        duration = 5000
+    })
+    SendNUIMessage('refreshBusinessOrders')
+end)
+
+RegisterNetEvent('way:orderAccepted')
+AddEventHandler('way:orderAccepted', function(id)
+    TriggerEvent('lb-phone:notify', {
+        title = 'Way Delivery',
+        message = 'Orden #' .. id .. ' aceptada',
+        icon = 'fas fa-hamburger',
+        duration = 5000
+    })
+    SendNUIMessage('refreshBusinessOrders')
+end)
+
+RegisterNetEvent('way:orderReady')
+AddEventHandler('way:orderReady', function(id)
+    TriggerEvent('lb-phone:notify', {
+        title = 'Way Delivery',
+        message = 'Orden #' .. id .. ' lista para delivery',
+        icon = 'fas fa-hamburger',
+        duration = 5000
+    })
+    SendNUIMessage('refreshBusinessOrders')
+    SendNUIMessage('refreshDeliveryOrders')
+end)
+
+RegisterNetEvent('way:orderTaken')
+AddEventHandler('way:orderTaken', function(id)
+    TriggerEvent('lb-phone:notify', {
+        title = 'Way Delivery',
+        message = 'Orden #' .. id .. ' recogida',
+        icon = 'fas fa-hamburger',
+        duration = 5000
+    })
+    SendNUIMessage('refreshBusinessOrders')
+    SendNUIMessage('refreshDeliveryOrders')
+end)
+
 -- Send messages to UI
 local function openUI()
     SetNuiFocus(true, true)
