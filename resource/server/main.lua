@@ -113,6 +113,27 @@ RegisterNetEvent('way:acceptOrder', function(id)
     end)
 end)
 
+-- Business rejects order
+RegisterNetEvent('way:rejectOrder', function(id)
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if not xPlayer then return end
+    MySQL.single('SELECT negocio_id, user_id FROM wayya WHERE id=? AND record_type="order"', {id}, function(order)
+        if not order then return end
+        MySQL.single('SELECT id FROM wayya WHERE id=? AND dueno_id=? AND record_type="business"', {order.negocio_id, xPlayer.identifier}, function(b)
+            if not b then
+                notify(src, 'Way Delivery', 'No tienes permiso para esa orden')
+                return
+            end
+            MySQL.update('UPDATE wayya SET estado="rechazado" WHERE id=? AND record_type="order"', {id})
+            local customer = ESX.GetPlayerFromIdentifier(order.user_id)
+            if customer then
+                notify(customer.source, 'Way Delivery', 'Tu pedido #'..id..' fue rechazado')
+            end
+        end)
+    end)
+end)
+
 -- Order ready for delivery
 RegisterNetEvent('way:readyOrder', function(id)
     local src = source

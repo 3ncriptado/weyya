@@ -116,6 +116,7 @@ function loadBusinessOrders() {
         <p>Orden #${o.id} - $${o.total}</p>
         <div class="mt-2 flex space-x-2">
           <button class="accept px-2 py-1 bg-green-600 rounded" data-id="${o.id}">Aceptar</button>
+          <button class="reject px-2 py-1 bg-red-600 rounded" data-id="${o.id}">Rechazar</button>
           <button class="ready px-2 py-1 bg-yellow-600 rounded" data-id="${o.id}">Enviar a delivery</button>
         </div>`;
       container.appendChild(div);
@@ -127,6 +128,9 @@ document.getElementById('businessOrders').addEventListener('click', (e) => {
   const id = e.target.dataset.id;
   if (e.target.classList.contains('accept')) {
     nui('acceptOrder', { id }).then(loadBusinessOrders);
+  }
+  if (e.target.classList.contains('reject')) {
+    nui('rejectOrder', { id }).then(loadBusinessOrders);
   }
   if (e.target.classList.contains('ready')) {
     nui('readyOrder', { id }).then(loadBusinessOrders);
