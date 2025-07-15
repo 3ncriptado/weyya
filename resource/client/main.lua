@@ -189,5 +189,4 @@ AddEventHandler('way:orderLocations', function(data)
     CurrentDeliveryLocations = data
 end)
 
-end)
 

@@ -1,3 +1,7 @@
+# Way Delivery
+
+Este repositorio contiene la especificacion del proyecto en espanol para una aplicacion de reparto de comida integrada con lb-phone para FiveM.
+
 Crear un recurso para FiveM (ESX) compatible con lb-phone que implemente una app de delivery de comida llamada "Way Delivery", con las siguientes características técnicas:
 
 1. Estructura de la App:
