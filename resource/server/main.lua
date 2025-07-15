@@ -108,11 +108,15 @@ RegisterNetEvent('way:acceptOrder', function(id)
     local src = source
     local xPlayer = ESX.GetPlayerFromId(src)
     if not xPlayer then return end
-    MySQL.single('SELECT negocio_id FROM wayya WHERE id=? AND record_type="order"', {id}, function(order)
+    MySQL.single('SELECT negocio_id, estado FROM wayya WHERE id=? AND record_type="order"', {id}, function(order)
         if not order then return end
         MySQL.single('SELECT id FROM wayya WHERE id=? AND dueno_id=? AND record_type="business"', {order.negocio_id, xPlayer.identifier}, function(b)
             if not b then
                 notify(src, 'Way Delivery', 'No tienes permiso para esa orden')
+                return
+            end
+            if order.estado ~= 'pendiente' then
+                notify(src, 'Way Delivery', 'Estado de la orden inv\195\161lido')
                 return
             end
             MySQL.update('UPDATE wayya SET estado="aceptado" WHERE id=? AND record_type="order"', {id})
@@ -147,11 +151,15 @@ RegisterNetEvent('way:readyOrder', function(id)
     local src = source
     local xPlayer = ESX.GetPlayerFromId(src)
     if not xPlayer then return end
-    MySQL.single('SELECT negocio_id FROM wayya WHERE id=? AND record_type="order"', {id}, function(order)
+    MySQL.single('SELECT negocio_id, estado FROM wayya WHERE id=? AND record_type="order"', {id}, function(order)
         if not order then return end
         MySQL.single('SELECT id FROM wayya WHERE id=? AND dueno_id=? AND record_type="business"', {order.negocio_id, xPlayer.identifier}, function(b)
             if not b then
                 notify(src, 'Way Delivery', 'No tienes permiso para esa orden')
+                return
+            end
+            if order.estado ~= 'aceptado' then
+                notify(src, 'Way Delivery', 'La orden no est\195\161 aceptada')
                 return
             end
             MySQL.update('UPDATE wayya SET estado="enviado" WHERE id=? AND record_type="order"', {id})
@@ -168,41 +176,61 @@ RegisterNetEvent('way:takeOrder', function(id)
         notify(src, 'Way Delivery', 'No eres repartidor')
         return
     end
-    MySQL.update('UPDATE wayya SET delivery_id=?, estado="en_camino" WHERE id=? AND record_type="order" AND (delivery_id IS NULL OR delivery_id="")', {xPlayer.identifier, id}, function(rows)
-        if rows and rows > 0 then
-            MySQL.single('SELECT negocio_id, ubicacion_cliente FROM wayya WHERE id=? AND record_type="order"', {id}, function(order)
-                if order then
-                    MySQL.single('SELECT ubicacion_negocio FROM wayya WHERE id=? AND record_type="business"', {order.negocio_id}, function(bus)
-                        local businessLoc, clientLoc
-                        if bus and bus.ubicacion_negocio then
-                            local ok, data = pcall(json.decode, bus.ubicacion_negocio)
-                            if ok then businessLoc = data end
-                        end
-                        if order.ubicacion_cliente then
-                            local ok, data = pcall(json.decode, order.ubicacion_cliente)
-                            if ok then clientLoc = data end
-                        end
-                        TriggerClientEvent('way:orderLocations', src, {business = businessLoc, client = clientLoc})
-                    end)
-                end
-            end)
-            notify(src, 'Way Delivery', 'Has tomado la orden #'..id)
-            TriggerClientEvent('way:orderTaken', -1, id)
-        else
-            notify(src, 'Way Delivery', 'La orden ya fue tomada')
+
+    MySQL.single('SELECT estado, delivery_id FROM wayya WHERE id=? AND record_type="order"', {id}, function(order)
+        if not order then return end
+        if order.estado ~= 'enviado' then
+            notify(src, 'Way Delivery', 'La orden no está disponible')
+            return
         end
+        if order.delivery_id and order.delivery_id ~= '' then
+            notify(src, 'Way Delivery', 'La orden ya fue tomada')
+            return
+        end
+
+        MySQL.update('UPDATE wayya SET delivery_id=?, estado="en_camino" WHERE id=? AND record_type="order"', {xPlayer.identifier, id}, function(rows)
+            if rows and rows > 0 then
+                -- Obtener ubicaciones del negocio y del cliente
+                MySQL.single('SELECT negocio_id, ubicacion_cliente FROM wayya WHERE id=? AND record_type="order"', {id}, function(order)
+                    if order then
+                        MySQL.single('SELECT ubicacion_negocio FROM wayya WHERE id=? AND record_type="business"', {order.negocio_id}, function(bus)
+                            local businessLoc, clientLoc
+                            if bus and bus.ubicacion_negocio then
+                                local ok, data = pcall(json.decode, bus.ubicacion_negocio)
+                                if ok then businessLoc = data end
+                            end
+                            if order.ubicacion_cliente then
+                                local ok, data = pcall(json.decode, order.ubicacion_cliente)
+                                if ok then clientLoc = data end
+                            end
+                            TriggerClientEvent('way:orderLocations', src, {business = businessLoc, client = clientLoc})
+                        end)
+                    end
+                end)
+
+                notify(src, 'Way Delivery', 'Has tomado la orden #'..id)
+                TriggerClientEvent('way:orderTaken', -1, id)
+            else
+                notify(src, 'Way Delivery', 'La orden ya fue tomada')
+            end
+        end)
     end)
 end)
+
 
 -- Customer pays and completes order
 RegisterNetEvent('way:payOrder', function(id)
     local src = source
     local xPlayer = ESX.GetPlayerFromId(src)
     if not xPlayer then return end
-    MySQL.single('SELECT total, negocio_id, delivery_id, user_id FROM wayya WHERE id=? AND record_type="order"', {id}, function(order)
+    MySQL.single('SELECT total, negocio_id, delivery_id, user_id, estado FROM wayya WHERE id=? AND record_type="order"', {id}, function(order)
         if not order then return end
         if order.user_id ~= xPlayer.identifier then
             notify(src, 'Way Delivery', 'No eres el dueño de la orden')
+            return
+        end
+        if order.estado ~= 'en_camino' then
+            notify(src, 'Way Delivery', 'La orden no está en camino')
             return
         end
         if xPlayer.getMoney() < order.total then
