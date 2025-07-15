@@ -186,3 +186,86 @@ RegisterNetEvent('way:payOrder', function(id)
     end)
 end)
 
+-- =====================================================================
+-- Business management
+
+-- Fetch business owned by the requesting player
+ESX.RegisterServerCallback('way:getOwnerBusiness', function(source, cb)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return cb(nil) end
+    MySQL.single('SELECT id, nombre, menu, ubicacion_negocio FROM wayya WHERE dueno_id=? AND record_type="business"', {xPlayer.identifier}, function(b)
+        if not b then return cb(nil) end
+        local menu = {}
+        if b.menu then
+            local ok, data = pcall(json.decode, b.menu)
+            if ok and data then menu = data end
+        end
+        cb({ id = b.id, nombre = b.nombre, menu = menu, ubicacion = b.ubicacion_negocio })
+    end)
+end)
+
+-- Create new business for the player
+RegisterNetEvent('way:registerBusiness', function(data)
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if not xPlayer or not data or not data.name then return end
+    MySQL.single('SELECT id FROM wayya WHERE dueno_id=? AND record_type="business"', {xPlayer.identifier}, function(b)
+        if b then
+            notify(src, 'Way Delivery', 'Ya tienes un negocio registrado')
+            return
+        end
+        MySQL.insert('INSERT INTO wayya (record_type, nombre, menu, dueno_id, ubicacion_negocio) VALUES ("business", ?, ?, ?, ?)',
+            {data.name, json.encode(data.menu or {}), xPlayer.identifier, json.encode(data.location)},
+            function(id)
+                notify(src, 'Way Delivery', 'Negocio registrado #'..id)
+            end)
+    end)
+end)
+
+-- Add or update a menu item
+RegisterNetEvent('way:updateMenuItem', function(item)
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if not xPlayer or not item then return end
+    MySQL.single('SELECT id, menu FROM wayya WHERE dueno_id=? AND record_type="business"', {xPlayer.identifier}, function(b)
+        if not b then return end
+        local menu = {}
+        if b.menu then
+            local ok, data = pcall(json.decode, b.menu)
+            if ok and data then menu = data end
+        end
+        local found = false
+        for i,v in ipairs(menu) do
+            if tostring(v.id) == tostring(item.id) then
+                menu[i] = item
+                found = true
+                break
+            end
+        end
+        if not found then table.insert(menu, item) end
+        MySQL.update('UPDATE wayya SET menu=? WHERE id=?', {json.encode(menu), b.id})
+    end)
+end)
+
+-- Delete a menu item
+RegisterNetEvent('way:deleteMenuItem', function(data)
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if not xPlayer or not data or not data.id then return end
+    MySQL.single('SELECT id, menu FROM wayya WHERE dueno_id=? AND record_type="business"', {xPlayer.identifier}, function(b)
+        if not b then return end
+        local menu = {}
+        if b.menu then
+            local ok, arr = pcall(json.decode, b.menu)
+            if ok and arr then menu = arr end
+        end
+        for i,v in ipairs(menu) do
+            if tostring(v.id) == tostring(data.id) then
+                table.remove(menu, i)
+                break
+            end
+        end
+        MySQL.update('UPDATE wayya SET menu=? WHERE id=?', {json.encode(menu), b.id})
+    end)
+end)
+

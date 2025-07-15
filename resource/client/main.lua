@@ -87,3 +87,25 @@ RegisterNUICallback('payOrder', function(data, cb)
     cb({})
 end)
 
+RegisterNUICallback('getOwnerBusiness', function(data, cb)
+    ESX.TriggerServerCallback('way:getOwnerBusiness', function(res)
+        cb(res)
+    end)
+end)
+
+RegisterNUICallback('registerBusiness', function(data, cb)
+    data.location = GetEntityCoords(PlayerPedId())
+    TriggerServerEvent('way:registerBusiness', data)
+    cb({})
+end)
+
+RegisterNUICallback('updateMenuItem', function(data, cb)
+    TriggerServerEvent('way:updateMenuItem', data)
+    cb({})
+end)
+
+RegisterNUICallback('deleteMenuItem', function(data, cb)
+    TriggerServerEvent('way:deleteMenuItem', data)
+    cb({})
+end)
+
