@@ -113,6 +113,11 @@ RegisterNUICallback('acceptOrder', function(data, cb)
     cb({})
 end)
 
+RegisterNUICallback('rejectOrder', function(data, cb)
+    TriggerServerEvent('way:rejectOrder', data.id)
+    cb({})
+end)
+
 RegisterNUICallback('readyOrder', function(data, cb)
     TriggerServerEvent('way:readyOrder', data.id)
     cb({})
