@@ -2,16 +2,20 @@ RegisterNetEvent('way:orderCreated')
 AddEventHandler('way:orderCreated', function(data)
     print('Order created: ' .. data.id)
 end)
+-- Order event handlers ------------------------------------------------------
 
--- Incoming order/notification events ---------------------------------------
+-- When a new order is created notify the player and refresh the UI
 RegisterNetEvent('way:newOrder')
 AddEventHandler('way:newOrder', function(data)
+    -- Show phone notification
     TriggerEvent('lb-phone:notify', {
         title = 'Way Delivery',
-        message = 'Nueva orden #' .. data.id,
+        message = 'Nueva orden #' .. tostring(data.id),
         icon = 'fas fa-hamburger',
         duration = 5000
     })
+
+    -- Update business orders list if UI is open
     SendNUIMessage('refreshBusinessOrders')
 end)
 
@@ -49,6 +53,7 @@ AddEventHandler('way:orderTaken', function(id)
     SendNUIMessage('refreshBusinessOrders')
     SendNUIMessage('refreshDeliveryOrders')
 end)
+
 
 -- Send messages to UI
 local function openUI()
