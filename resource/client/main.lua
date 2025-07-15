@@ -129,6 +129,12 @@ RegisterNUICallback('getAvailableOrders', function(data, cb)
     end)
 end)
 
+RegisterNUICallback('getMyOrders', function(data, cb)
+    ESX.TriggerServerCallback('way:getMyOrders', function(res)
+        cb(res)
+    end)
+end)
+
 RegisterNUICallback('takeOrder', function(data, cb)
     TriggerServerEvent('way:takeOrder', data.id)
     cb({})

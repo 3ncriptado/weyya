@@ -79,6 +79,14 @@ ESX.RegisterServerCallback('way:getAvailableOrders', function(source, cb)
     end)
 end)
 
+ESX.RegisterServerCallback('way:getMyOrders', function(source, cb)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return cb({}) end
+    MySQL.query('SELECT id, total, estado FROM wayya WHERE record_type="order" AND user_id=? ORDER BY created_at DESC', {xPlayer.identifier}, function(res)
+        cb(res or {})
+    end)
+end)
+
 -- Client creates an order
 RegisterNetEvent('way:createOrder', function(data)
     local src = source
