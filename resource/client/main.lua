@@ -134,3 +134,20 @@ RegisterNUICallback('payOrder', function(data, cb)
     cb({})
 end)
 
+-- Returns player's current coordinates to the UI
+RegisterNUICallback('getPlayerCoords', function(data, cb)
+    local coords = GetEntityCoords(PlayerPedId())
+    cb({ x = coords.x, y = coords.y, z = coords.z })
+end)
+
+-- Receive business and client locations when taking an order
+RegisterNetEvent('way:orderLocations')
+AddEventHandler('way:orderLocations', function(data)
+    if data and data.business then
+        SetNewWaypoint(data.business.x + 0.0, data.business.y + 0.0)
+        ESX.ShowNotification('Dir\195\173gete al negocio para recoger el pedido')
+    end
+    -- store for optional use by other scripts
+    CurrentDeliveryLocations = data
+end)
+
