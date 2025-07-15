@@ -188,3 +188,4 @@ AddEventHandler('way:orderLocations', function(data)
     -- store for optional use by other scripts
     CurrentDeliveryLocations = data
 end)
+
