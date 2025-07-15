@@ -29,6 +29,26 @@ async function nui(action, data) {
 let currentBusiness = null;
 let cart = [];
 
+function loadMyOrders() {
+  nui('getMyOrders').then((orders) => {
+    const container = document.getElementById('myOrders');
+    container.innerHTML = '<h2 class="font-bold mb-2">Mis pedidos</h2>';
+    (orders || []).forEach((o) => {
+      const div = document.createElement('div');
+      div.className = 'bg-gray-800 p-2 rounded mt-1 flex justify-between items-center';
+      div.innerHTML = `<span>Orden #${o.id} - $${o.total} (${o.estado})</span>`;
+      if (o.estado !== 'entregado') {
+        const btn = document.createElement('button');
+        btn.className = 'pay px-2 py-1 bg-green-600 rounded';
+        btn.dataset.id = o.id;
+        btn.textContent = 'Pagar';
+        div.appendChild(btn);
+      }
+      container.appendChild(div);
+    });
+  });
+}
+
 function loadBusinesses() {
   nui('getBusinesses').then((list) => {
     if (!Array.isArray(list)) return;
@@ -133,6 +153,13 @@ document.getElementById('businessOrders').addEventListener('click', (e) => {
   }
 });
 
+document.getElementById('myOrders').addEventListener('click', (e) => {
+  if (e.target.classList.contains('pay')) {
+    const id = e.target.dataset.id;
+    nui('payOrder', { id }).then(loadMyOrders);
+  }
+});
+
 // DELIVERY VIEW ------------------------------------------------------------
 function loadDeliveryOrders() {
   nui('getAvailableOrders').then((orders) => {
@@ -160,6 +187,7 @@ window.addEventListener('message', (e) => {
     document.getElementById('app').style.display = 'block';
     loadBusinesses();
     loadBusinessOrders();
+    loadMyOrders();
     loadDeliveryOrders();
   } else if (e.data === 'close') {
     document.getElementById('app').style.display = 'none';
@@ -170,6 +198,7 @@ window.addEventListener('message', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
   loadBusinesses();
   loadBusinessOrders();
+  loadMyOrders();
   loadDeliveryOrders();
 });
 
