@@ -134,6 +134,28 @@ RegisterNUICallback('payOrder', function(data, cb)
     cb({})
 end)
 
+RegisterNUICallback('getOwnerBusiness', function(data, cb)
+    ESX.TriggerServerCallback('way:getOwnerBusiness', function(res)
+        cb(res)
+    end)
+end)
+
+RegisterNUICallback('registerBusiness', function(data, cb)
+    data.location = GetEntityCoords(PlayerPedId())
+    TriggerServerEvent('way:registerBusiness', data)
+    cb({})
+end)
+
+RegisterNUICallback('updateMenuItem', function(data, cb)
+    TriggerServerEvent('way:updateMenuItem', data)
+    cb({})
+end)
+
+RegisterNUICallback('deleteMenuItem', function(data, cb)
+    TriggerServerEvent('way:deleteMenuItem', data)
+    cb({})
+end)
+
 -- Returns player's current coordinates to the UI
 RegisterNUICallback('getPlayerCoords', function(data, cb)
     local coords = GetEntityCoords(PlayerPedId())
@@ -145,9 +167,11 @@ RegisterNetEvent('way:orderLocations')
 AddEventHandler('way:orderLocations', function(data)
     if data and data.business then
         SetNewWaypoint(data.business.x + 0.0, data.business.y + 0.0)
-        ESX.ShowNotification('Dir\195\173gete al negocio para recoger el pedido')
+        ESX.ShowNotification('Dirígete al negocio para recoger el pedido')
     end
     -- store for optional use by other scripts
     CurrentDeliveryLocations = data
+end)
+
 end)
 
