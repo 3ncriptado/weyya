@@ -11,3 +11,7 @@ body {
   background: #2563eb;
 }
 
+#payment button {
+  width: 100%;
+}
+

@@ -28,9 +28,13 @@ async function nui(action, data) {
 // CLIENT VIEW --------------------------------------------------------------
 let currentBusiness = null;
 let cart = [];
+
 let ownerBusiness = null;
 let menuItems = [];
 let editingId = null;
+
+let pendingPayment = null;
+
 
 function loadBusinesses() {
   nui('getBusinesses').then((list) => {
@@ -98,14 +102,16 @@ function updateCart() {
   const confirm = document.createElement('button');
   confirm.textContent = `Confirmar pedido ($${total})`;
   confirm.className = 'mt-2 px-2 py-1 bg-blue-600 rounded';
-  confirm.addEventListener('click', () => {
-    nui('createOrder', { negocio: currentBusiness, items: cart, total }).then(() => {
+  confirm.addEventListener('click', async () => {
+    const location = await nui('getPlayerCoords');
+    nui('createOrder', { negocio: currentBusiness, items: cart, total, location }).then(() => {
       cart = [];
       updateCart();
     });
   });
   div.appendChild(confirm);
 }
+
 
 // ---------------- BUSINESS MANAGEMENT --------------------
 function loadOwnerBusiness() {
@@ -189,6 +195,26 @@ document.getElementById('businessManage').addEventListener('click', (e) => {
       document.getElementById('itemPrice').value = item.price;
       editingId = item.id;
     }
+=======
+function showPayButton(id) {
+  pendingPayment = id;
+  const payDiv = document.getElementById('payment');
+  payDiv.innerHTML = `<button id="payBtn" data-id="${id}" class="px-2 py-1 bg-green-600 rounded">Pagar</button>`;
+  payDiv.classList.remove('hidden');
+}
+
+function hidePayButton() {
+  pendingPayment = null;
+  const payDiv = document.getElementById('payment');
+  payDiv.innerHTML = '';
+  payDiv.classList.add('hidden');
+}
+
+document.getElementById('payment').addEventListener('click', (e) => {
+  if (e.target.id === 'payBtn') {
+    const id = e.target.dataset.id;
+    nui('payOrder', { id }).then(hidePayButton);
+
   }
 });
 
@@ -252,6 +278,12 @@ window.addEventListener('message', (e) => {
     loadDeliveryOrders();
   } else if (e.data === 'close') {
     document.getElementById('app').style.display = 'none';
+  } else if (e.data && e.data.action === 'showPay') {
+    showPayButton(e.data.id);
+  } else if (e.data === 'refreshBusinessOrders') {
+    loadBusinessOrders();
+  } else if (e.data === 'refreshDeliveryOrders') {
+    loadDeliveryOrders();
   }
 });
 

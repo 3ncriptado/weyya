@@ -3,6 +3,53 @@ AddEventHandler('way:orderCreated', function(data)
     print('Order created: ' .. data.id)
 end)
 
+-- Incoming order/notification events ---------------------------------------
+RegisterNetEvent('way:newOrder')
+AddEventHandler('way:newOrder', function(data)
+    TriggerEvent('lb-phone:notify', {
+        title = 'Way Delivery',
+        message = 'Nueva orden #' .. data.id,
+        icon = 'fas fa-hamburger',
+        duration = 5000
+    })
+    SendNUIMessage('refreshBusinessOrders')
+end)
+
+RegisterNetEvent('way:orderAccepted')
+AddEventHandler('way:orderAccepted', function(id)
+    TriggerEvent('lb-phone:notify', {
+        title = 'Way Delivery',
+        message = 'Orden #' .. id .. ' aceptada',
+        icon = 'fas fa-hamburger',
+        duration = 5000
+    })
+    SendNUIMessage('refreshBusinessOrders')
+end)
+
+RegisterNetEvent('way:orderReady')
+AddEventHandler('way:orderReady', function(id)
+    TriggerEvent('lb-phone:notify', {
+        title = 'Way Delivery',
+        message = 'Orden #' .. id .. ' lista para delivery',
+        icon = 'fas fa-hamburger',
+        duration = 5000
+    })
+    SendNUIMessage('refreshBusinessOrders')
+    SendNUIMessage('refreshDeliveryOrders')
+end)
+
+RegisterNetEvent('way:orderTaken')
+AddEventHandler('way:orderTaken', function(id)
+    TriggerEvent('lb-phone:notify', {
+        title = 'Way Delivery',
+        message = 'Orden #' .. id .. ' recogida',
+        icon = 'fas fa-hamburger',
+        duration = 5000
+    })
+    SendNUIMessage('refreshBusinessOrders')
+    SendNUIMessage('refreshDeliveryOrders')
+end)
+
 -- Send messages to UI
 local function openUI()
     SetNuiFocus(true, true)
@@ -107,5 +154,24 @@ end)
 RegisterNUICallback('deleteMenuItem', function(data, cb)
     TriggerServerEvent('way:deleteMenuItem', data)
     cb({})
+end)
+
+-- Returns player's current coordinates to the UI
+RegisterNUICallback('getPlayerCoords', function(data, cb)
+    local coords = GetEntityCoords(PlayerPedId())
+    cb({ x = coords.x, y = coords.y, z = coords.z })
+end)
+
+-- Receive business and client locations when taking an order
+RegisterNetEvent('way:orderLocations')
+AddEventHandler('way:orderLocations', function(data)
+    if data and data.business then
+        SetNewWaypoint(data.business.x + 0.0, data.business.y + 0.0)
+        ESX.ShowNotification('Dirígete al negocio para recoger el pedido')
+    end
+    -- store for optional use by other scripts
+    CurrentDeliveryLocations = data
+end)
+
 end)
 
