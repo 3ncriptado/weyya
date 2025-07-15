@@ -187,6 +187,10 @@ window.addEventListener('message', (e) => {
     document.getElementById('app').style.display = 'none';
   } else if (e.data && e.data.action === 'showPay') {
     showPayButton(e.data.id);
+  } else if (e.data === 'refreshBusinessOrders') {
+    loadBusinessOrders();
+  } else if (e.data === 'refreshDeliveryOrders') {
+    loadDeliveryOrders();
   }
 });
 
