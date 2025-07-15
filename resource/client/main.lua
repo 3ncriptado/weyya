@@ -2,6 +2,7 @@ RegisterNetEvent('way:orderCreated')
 AddEventHandler('way:orderCreated', function(data)
     print('Order created: ' .. data.id)
 end)
+-- Order event handlers ------------------------------------------------------
 
 -- When a new order is created notify the player and refresh the UI
 RegisterNetEvent('way:newOrder')
@@ -17,6 +18,42 @@ AddEventHandler('way:newOrder', function(data)
     -- Update business orders list if UI is open
     SendNUIMessage('refreshBusinessOrders')
 end)
+
+RegisterNetEvent('way:orderAccepted')
+AddEventHandler('way:orderAccepted', function(id)
+    TriggerEvent('lb-phone:notify', {
+        title = 'Way Delivery',
+        message = 'Orden #' .. id .. ' aceptada',
+        icon = 'fas fa-hamburger',
+        duration = 5000
+    })
+    SendNUIMessage('refreshBusinessOrders')
+end)
+
+RegisterNetEvent('way:orderReady')
+AddEventHandler('way:orderReady', function(id)
+    TriggerEvent('lb-phone:notify', {
+        title = 'Way Delivery',
+        message = 'Orden #' .. id .. ' lista para delivery',
+        icon = 'fas fa-hamburger',
+        duration = 5000
+    })
+    SendNUIMessage('refreshBusinessOrders')
+    SendNUIMessage('refreshDeliveryOrders')
+end)
+
+RegisterNetEvent('way:orderTaken')
+AddEventHandler('way:orderTaken', function(id)
+    TriggerEvent('lb-phone:notify', {
+        title = 'Way Delivery',
+        message = 'Orden #' .. id .. ' recogida',
+        icon = 'fas fa-hamburger',
+        duration = 5000
+    })
+    SendNUIMessage('refreshBusinessOrders')
+    SendNUIMessage('refreshDeliveryOrders')
+end)
+
 
 -- Send messages to UI
 local function openUI()
@@ -58,7 +95,7 @@ end)
 RegisterNUICallback('getBusinesses', function(data, cb)
     ESX.TriggerServerCallback('way:getBusinesses', function(res)
         cb(res)
-    end)
+    end, data.categoria)
 end)
 
 RegisterNUICallback('getBusinessMenu', function(data, cb)
@@ -81,6 +118,11 @@ RegisterNUICallback('acceptOrder', function(data, cb)
     cb({})
 end)
 
+RegisterNUICallback('rejectOrder', function(data, cb)
+    TriggerServerEvent('way:rejectOrder', data.id)
+    cb({})
+end)
+
 RegisterNUICallback('readyOrder', function(data, cb)
     TriggerServerEvent('way:readyOrder', data.id)
     cb({})
@@ -88,6 +130,12 @@ end)
 
 RegisterNUICallback('getAvailableOrders', function(data, cb)
     ESX.TriggerServerCallback('way:getAvailableOrders', function(res)
+        cb(res)
+    end)
+end)
+
+RegisterNUICallback('getMyOrders', function(data, cb)
+    ESX.TriggerServerCallback('way:getMyOrders', function(res)
         cb(res)
     end)
 end)
@@ -100,5 +148,46 @@ end)
 RegisterNUICallback('payOrder', function(data, cb)
     TriggerServerEvent('way:payOrder', data.id)
     cb({})
+end)
+
+RegisterNUICallback('getOwnerBusiness', function(data, cb)
+    ESX.TriggerServerCallback('way:getOwnerBusiness', function(res)
+        cb(res)
+    end)
+end)
+
+RegisterNUICallback('registerBusiness', function(data, cb)
+    data.location = GetEntityCoords(PlayerPedId())
+    TriggerServerEvent('way:registerBusiness', data)
+    cb({})
+end)
+
+RegisterNUICallback('updateMenuItem', function(data, cb)
+    TriggerServerEvent('way:updateMenuItem', data)
+    cb({})
+end)
+
+RegisterNUICallback('deleteMenuItem', function(data, cb)
+    TriggerServerEvent('way:deleteMenuItem', data)
+    cb({})
+end)
+
+-- Returns player's current coordinates to the UI
+RegisterNUICallback('getPlayerCoords', function(data, cb)
+    local coords = GetEntityCoords(PlayerPedId())
+    cb({ x = coords.x, y = coords.y, z = coords.z })
+end)
+
+-- Receive business and client locations when taking an order
+RegisterNetEvent('way:orderLocations')
+AddEventHandler('way:orderLocations', function(data)
+    if data and data.business then
+        SetNewWaypoint(data.business.x + 0.0, data.business.y + 0.0)
+        ESX.ShowNotification('Dirígete al negocio para recoger el pedido')
+    end
+    -- store for optional use by other scripts
+    CurrentDeliveryLocations = data
+end)
+
 end)
 
