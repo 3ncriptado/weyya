@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS wayya (
 
     -- Datos del negocio
     nombre VARCHAR(50) NULL,
+    categoria VARCHAR(50) NULL,
     menu LONGTEXT NULL,
     dueno_id VARCHAR(60) NULL,
     ubicacion_negocio LONGTEXT NULL,

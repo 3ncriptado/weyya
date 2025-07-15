@@ -28,10 +28,25 @@ async function nui(action, data) {
 // CLIENT VIEW --------------------------------------------------------------
 let currentBusiness = null;
 let cart = [];
+let currentCategory = '';
 
-function loadBusinesses() {
-  nui('getBusinesses').then((list) => {
+function populateCategories(list) {
+  const sel = document.getElementById('categoryFilter');
+  sel.innerHTML = '<option value="">Todas</option>';
+  const cats = [...new Set(list.map((b) => b.categoria).filter(Boolean))];
+  cats.forEach((c) => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
+function loadBusinesses(category) {
+  if (category !== undefined) currentCategory = category;
+  nui('getBusinesses', { categoria: currentCategory }).then((list) => {
     if (!Array.isArray(list)) return;
+    if (!currentCategory) populateCategories(list);
     const container = document.getElementById('businessList');
     container.innerHTML = '';
     list.forEach((b) => {
@@ -51,6 +66,10 @@ document.getElementById('businessList').addEventListener('click', (e) => {
       showMenu(menu || []);
     });
   }
+});
+
+document.getElementById('categoryFilter').addEventListener('change', (e) => {
+  loadBusinesses(e.target.value);
 });
 
 function showMenu(menu) {
@@ -158,7 +177,7 @@ document.getElementById('deliveryOrders').addEventListener('click', (e) => {
 window.addEventListener('message', (e) => {
   if (e.data === 'open') {
     document.getElementById('app').style.display = 'block';
-    loadBusinesses();
+    loadBusinesses('');
     loadBusinessOrders();
     loadDeliveryOrders();
   } else if (e.data === 'close') {
@@ -168,7 +187,7 @@ window.addEventListener('message', (e) => {
 
 // For local testing without phone
 document.addEventListener('DOMContentLoaded', () => {
-  loadBusinesses();
+  loadBusinesses('');
   loadBusinessOrders();
   loadDeliveryOrders();
 });

@@ -43,7 +43,7 @@ end)
 RegisterNUICallback('getBusinesses', function(data, cb)
     ESX.TriggerServerCallback('way:getBusinesses', function(res)
         cb(res)
-    end)
+    end, data.categoria)
 end)
 
 RegisterNUICallback('getBusinessMenu', function(data, cb)
