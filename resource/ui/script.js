@@ -30,8 +30,58 @@ async function nui(action, data) {
 }
 
 // CLIENT VIEW --------------------------------------------------------------
+const tabs = document.querySelectorAll('.tab');
+const contents = document.querySelectorAll('.tab-content');
+
+// Detect resource name dynamically to support renamed folders
+const resourceName =
+  typeof GetParentResourceName === 'function' ? GetParentResourceName() : 'way';
+
+tabs.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    tabs.forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    const name = btn.dataset.tab;
+    contents.forEach((c) => c.classList.add('hidden'));
+    document.getElementById(name).classList.remove('hidden');
+  });
+});
+
+// Utility to send data to FiveM
+async function nui(action, data) {
+  const res = await fetch(`https://${resourceName}/${action}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data || {}),
+  });
+  try {
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+}
+
 let currentBusiness = null;
 let cart = [];
+let currentCategory = '';
+
+let ownerBusiness = null;
+let menuItems = [];
+let editingId = null;
+
+let pendingPayment = null;
+
+function populateCategories(list) {
+  const sel = document.getElementById('categoryFilter');
+  sel.innerHTML = '<option value="">Todas</option>';
+  const cats = [...new Set(list.map((b) => b.categoria).filter(Boolean))];
+  cats.forEach((c) => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
 
 function loadMyOrders() {
   nui('getMyOrders').then((orders) => {
@@ -53,17 +103,11 @@ function loadMyOrders() {
   });
 }
 
-let ownerBusiness = null;
-let menuItems = [];
-let editingId = null;
-
-let pendingPayment = null;
-
-
-
-function loadBusinesses() {
-  nui('getBusinesses').then((list) => {
+function loadBusinesses(category) {
+  if (category !== undefined) currentCategory = category;
+  nui('getBusinesses', { categoria: currentCategory }).then((list) => {
     if (!Array.isArray(list)) return;
+    if (!currentCategory) populateCategories(list);
     const container = document.getElementById('businessList');
     container.innerHTML = '';
     list.forEach((b) => {
@@ -83,6 +127,10 @@ document.getElementById('businessList').addEventListener('click', (e) => {
       showMenu(menu || []);
     });
   }
+});
+
+document.getElementById('categoryFilter').addEventListener('change', (e) => {
+  loadBusinesses(e.target.value);
 });
 
 function showMenu(menu) {
@@ -136,6 +184,8 @@ function updateCart() {
   });
   div.appendChild(confirm);
 }
+
+// Continúa en la siguiente sección...
 
 
 // ---------------- BUSINESS MANAGEMENT --------------------
@@ -220,7 +270,9 @@ document.getElementById('businessManage').addEventListener('click', (e) => {
       document.getElementById('itemPrice').value = item.price;
       editingId = item.id;
     }
-=======
+  }
+});
+
 function showPayButton(id) {
   pendingPayment = id;
   const payDiv = document.getElementById('payment');
@@ -239,7 +291,6 @@ document.getElementById('payment').addEventListener('click', (e) => {
   if (e.target.id === 'payBtn') {
     const id = e.target.dataset.id;
     nui('payOrder', { id }).then(hidePayButton);
-
   }
 });
 
@@ -283,6 +334,7 @@ document.getElementById('myOrders').addEventListener('click', (e) => {
   }
 });
 
+
 // DELIVERY VIEW ------------------------------------------------------------
 function loadDeliveryOrders() {
   nui('getAvailableOrders').then((orders) => {
@@ -308,7 +360,7 @@ document.getElementById('deliveryOrders').addEventListener('click', (e) => {
 window.addEventListener('message', (e) => {
   if (e.data === 'open') {
     document.getElementById('app').style.display = 'block';
-    loadBusinesses();
+    loadBusinesses('');
     loadOwnerBusiness();
     loadBusinessOrders();
     loadMyOrders();
@@ -325,9 +377,15 @@ window.addEventListener('message', (e) => {
 });
 
 // For local testing without phone
+
 document.addEventListener('DOMContentLoaded', () => {
-  loadBusinesses();
+  loadBusinesses('');
   loadOwnerBusiness();
+  loadBusinessOrders();
+  loadMyOrders();
+  loadDeliveryOrders();
+});
+loadOwnerBusiness();
   loadBusinessOrders();
   loadMyOrders();
   loadDeliveryOrders();

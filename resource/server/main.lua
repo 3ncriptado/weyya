@@ -10,6 +10,7 @@ MySQL.ready(function()
         id INT AUTO_INCREMENT PRIMARY KEY,
         record_type ENUM('business','order','delivery_job') NOT NULL,
         nombre VARCHAR(50) NULL,
+        categoria VARCHAR(50) NULL,
         menu LONGTEXT NULL,
         dueno_id VARCHAR(60) NULL,
         ubicacion_negocio LONGTEXT NULL,
@@ -36,8 +37,14 @@ local function notify(src, title, msg)
 end
 
 -- Client requests list of businesses
-ESX.RegisterServerCallback('way:getBusinesses', function(source, cb)
-    MySQL.query('SELECT id, nombre, menu FROM wayya WHERE record_type="business"', {}, function(res)
+ESX.RegisterServerCallback('way:getBusinesses', function(source, cb, categoria)
+    local query = 'SELECT id, nombre, categoria FROM wayya WHERE record_type="business"'
+    local params = {}
+    if categoria and categoria ~= '' then
+        query = query .. ' AND categoria=?'
+        params = {categoria}
+    end
+    MySQL.query(query, params, function(res)
         cb(res)
     end)
 end)
