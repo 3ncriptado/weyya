@@ -28,6 +28,7 @@ async function nui(action, data) {
 // CLIENT VIEW --------------------------------------------------------------
 let currentBusiness = null;
 let cart = [];
+let pendingPayment = null;
 
 function loadBusinesses() {
   nui('getBusinesses').then((list) => {
@@ -104,6 +105,27 @@ function updateCart() {
   div.appendChild(confirm);
 }
 
+function showPayButton(id) {
+  pendingPayment = id;
+  const payDiv = document.getElementById('payment');
+  payDiv.innerHTML = `<button id="payBtn" data-id="${id}" class="px-2 py-1 bg-green-600 rounded">Pagar</button>`;
+  payDiv.classList.remove('hidden');
+}
+
+function hidePayButton() {
+  pendingPayment = null;
+  const payDiv = document.getElementById('payment');
+  payDiv.innerHTML = '';
+  payDiv.classList.add('hidden');
+}
+
+document.getElementById('payment').addEventListener('click', (e) => {
+  if (e.target.id === 'payBtn') {
+    const id = e.target.dataset.id;
+    nui('payOrder', { id }).then(hidePayButton);
+  }
+});
+
 // BUSINESS VIEW ------------------------------------------------------------
 function loadBusinessOrders() {
   nui('getBusinessOrders').then((orders) => {
@@ -163,6 +185,8 @@ window.addEventListener('message', (e) => {
     loadDeliveryOrders();
   } else if (e.data === 'close') {
     document.getElementById('app').style.display = 'none';
+  } else if (e.data && e.data.action === 'showPay') {
+    showPayButton(e.data.id);
   } else if (e.data === 'refreshBusinessOrders') {
     loadBusinessOrders();
   } else if (e.data === 'refreshDeliveryOrders') {
