@@ -1,16 +1,35 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="stylesheet" href="style.css" />
-<title>Way Delivery</title>
-</head>
-<body>
-<div id="app">
-  <h1 class="title">Way Delivery</h1>
-  <p>Interfaz en desarrollo...</p>
-</div>
-<script src="script.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
+    <title>Way Delivery</title>
+  </head>
+  <body class="bg-gray-900 text-white">
+    <div id="app" class="p-4">
+      <h1 class="text-xl font-bold mb-4 text-center">Way Delivery</h1>
+      <div class="tabs flex justify-center mb-4 space-x-2">
+        <button class="tab active" data-tab="client">Cliente</button>
+        <button class="tab" data-tab="business">Negocio</button>
+        <button class="tab" data-tab="delivery">Repartidor</button>
+      </div>
+
+      <div id="client" class="tab-content">
+        <div id="businessList" class="space-y-2"></div>
+        <div id="menu" class="hidden"></div>
+        <div id="cart" class="hidden mt-4"></div>
+      </div>
+
+      <div id="business" class="tab-content hidden">
+        <div id="businessOrders" class="space-y-2"></div>
+      </div>
+
+      <div id="delivery" class="tab-content hidden">
+        <div id="deliveryOrders" class="space-y-2"></div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
 </html>

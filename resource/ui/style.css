@@ -1,14 +1,13 @@
 body {
-  background: #1e1e1e;
-  color: white;
   font-family: Arial, sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
 }
-.title {
-  font-size: 24px;
+
+.tab {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.tab.active {
+  background: #2563eb;
 }
 
