@@ -95,8 +95,9 @@ function updateCart() {
   const confirm = document.createElement('button');
   confirm.textContent = `Confirmar pedido ($${total})`;
   confirm.className = 'mt-2 px-2 py-1 bg-blue-600 rounded';
-  confirm.addEventListener('click', () => {
-    nui('createOrder', { negocio: currentBusiness, items: cart, total }).then(() => {
+  confirm.addEventListener('click', async () => {
+    const location = await nui('getPlayerCoords');
+    nui('createOrder', { negocio: currentBusiness, items: cart, total, location }).then(() => {
       cart = [];
       updateCart();
     });

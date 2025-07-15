@@ -141,6 +141,22 @@ RegisterNetEvent('way:takeOrder', function(id)
     end
     MySQL.update('UPDATE wayya SET delivery_id=?, estado="en_camino" WHERE id=? AND record_type="order" AND (delivery_id IS NULL OR delivery_id="")', {xPlayer.identifier, id}, function(rows)
         if rows and rows > 0 then
+            MySQL.single('SELECT negocio_id, ubicacion_cliente FROM wayya WHERE id=? AND record_type="order"', {id}, function(order)
+                if order then
+                    MySQL.single('SELECT ubicacion_negocio FROM wayya WHERE id=? AND record_type="business"', {order.negocio_id}, function(bus)
+                        local businessLoc, clientLoc
+                        if bus and bus.ubicacion_negocio then
+                            local ok, data = pcall(json.decode, bus.ubicacion_negocio)
+                            if ok then businessLoc = data end
+                        end
+                        if order.ubicacion_cliente then
+                            local ok, data = pcall(json.decode, order.ubicacion_cliente)
+                            if ok then clientLoc = data end
+                        end
+                        TriggerClientEvent('way:orderLocations', src, {business = businessLoc, client = clientLoc})
+                    end)
+                end
+            end)
             notify(src, 'Way Delivery', 'Has tomado la orden #'..id)
             TriggerClientEvent('way:orderTaken', -1, id)
         else
